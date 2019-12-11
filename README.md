@@ -27,7 +27,7 @@ $ python3 main.py
 
 ## Documentation
 
-The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/master/) and can be found inside the docs/build/html directory.
+The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/master/) and can be found [here](sse-platform-test.readthedocs.io).
 
 #### Building the Docs yourself
 
