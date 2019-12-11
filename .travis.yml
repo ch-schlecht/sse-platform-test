@@ -4,5 +4,9 @@ branches:
         - master
 script:
     - pytest
-    - cd docs
-    - make html
+
+after_success:
+    - (cd docs && make html) # rebuild docs, will be published by readthedocs
+    # when software is ready for production
+    # put the code the platform to the server here
+    # or maybe use deploy stage (advantage: before_deploy to setup ssh)
