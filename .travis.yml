@@ -7,9 +7,9 @@ branches:
 before_script:
     - psql -U postgres -c 'CREATE DATABASE sse;'
     - psql -U postgres -c "CREATE USER admin WITH PASSWORD 'admin';"
-    - psql -u postgres -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO admin;'
-    - psql -u postgres -c 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO admin;'
-    - psql -u postgres -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO admin;'
+    - psql -U postgres -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO admin;'
+    - psql -U postgres -c 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO admin;'
+    - psql -U postgres -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO admin;'
 script:
     - pytest
 
