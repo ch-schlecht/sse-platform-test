@@ -32,7 +32,8 @@ release = '0.1'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinxcontrib.httpdomain'
+    'sphinxcontrib.httpdomain',
+    'sphinx_js'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -63,3 +64,4 @@ html_sidebars = {
 
 
 # -- Extension configuration -------------------------------------------------
+js_source_path = '../javascripts'

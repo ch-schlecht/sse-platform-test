@@ -405,6 +405,26 @@ token_cache.py
 .. automodule:: token_cache
     :members:
 
+login_register.js
+=================
+.. js:autofunction:: validateEmail
+
+.. js:autofunction:: login
+
+.. js:autofunction:: register
+
+.. js:autofunction:: loadMainPage
+
+main.js
+=======
+.. js:autofunction:: addModuleInstalled
+
+.. js:autofunction:: addModuleAvailable
+
+.. js:autofunction:: prettyPrint
+
+
+
 
 
 Indices and tables

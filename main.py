@@ -42,17 +42,14 @@ class BaseHandler(tornado.web.RequestHandler):
         """
 
         if dev_mode is False:
-            if "Authorization" in self.request.headers:
-                token = self.request.headers["Authorization"]
-                cached_user = token_cache().get(token)
-                if cached_user is not None:
-                    self.current_user = cached_user["user_id"]
-                else:
-                    self.current_user = None
+            token = tornado.escape.url_escape(self.get_argument("access_token", ""))  # need to url_escape because e.g. + would become space --> validation would fail
+            cached_user = token_cache().get(token)
+            if cached_user is not None:
+                self.current_user = cached_user["user_id"]
             else:
                 self.current_user = None
         else:
-            self.current_user = -1  # user_id -1 indicates developer mode
+            self.current_user = -1
 
 
 class MainHandler(BaseHandler):
@@ -67,7 +64,7 @@ class MainHandler(BaseHandler):
 
         """
         if self.current_user:
-            self.render("index.html")
+            self.render("main.html")
         else:
             self.set_status(401)
             self.write({"status": 401,
@@ -290,8 +287,7 @@ class LoginHandler(BaseHandler):
     """
 
     def get(self):
-        pass
-        # TODO maybe render a login.html (if it is not a web frontend, it simply shouldnt call get)
+        self.render("index.html")
 
     async def post(self):
         """
@@ -328,7 +324,7 @@ class LoginHandler(BaseHandler):
 
         if password_validated:
             # generate token, store and return it
-            access_token = b64encode(os.urandom(CONSTANTS.TOKEN_SIZE)).decode("utf-8")
+            access_token = tornado.escape.url_escape(b64encode(os.urandom(CONSTANTS.TOKEN_SIZE)).decode("utf-8"))
 
             token_cache().insert(access_token, user['id'])
 
@@ -344,16 +340,28 @@ class LoginHandler(BaseHandler):
                         "redirect_suggestions": ["/login", "/register"]})
 
 
+class LogoutHandler(BaseHandler):
+
+    def get(self):
+        pass
+
+    def post(self):
+        # simply remove token from the cache --> user needs to login again to proceed
+        token = tornado.escape.url_escape(self.get_argument("access_token", ""))
+        token_cache().remove(token)
+        self.set_status(200)
+        self.write({"status": 200,
+                    "success": True,
+                    "redirect_suggestions": ["/login"]})
+
+
 class RegisterHandler(BaseHandler):
     """
     Register an account towards the API
     """
 
     def get(self):
-        self.set_status(501)
-        self.write({"status": 501,
-                    "reason": "not_yet_implemented"})
-        # TODO maybe render a create.html (if it is not a web frontend, it simply shouldnt call get)
+        self.render("index.html")
 
     async def post(self):
         """
@@ -389,7 +397,7 @@ class RegisterHandler(BaseHandler):
                             email, nickname, tornado.escape.to_unicode(hashed_password), "user")
             user_id = result['id']
 
-            access_token = b64encode(os.urandom(CONSTANTS.TOKEN_SIZE)).decode("utf-8")
+            access_token = tornado.escape.url_escape(b64encode(os.urandom(CONSTANTS.TOKEN_SIZE)).decode("utf-8"))
 
             token_cache().insert(access_token, user_id)
 
@@ -431,13 +439,16 @@ def make_app(dev_mode_arg):
         dev_mode = True
 
     return tornado.web.Application([
-        (r"/", MainHandler),
+        (r"/main", MainHandler),
         (r"/modules/([a-zA-Z\-0-9\.:,_]+)", ModuleHandler),
         (r"/configs/([a-zA-Z\-0-9\.:,_]+)", ConfigHandler),
         (r"/execution/([a-zA-Z\-0-9\.:,_]+)", ExecutionHandler),
         (r"/register", RegisterHandler),
         (r"/login", LoginHandler),
-        (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": "./css/"})
+        (r"/logout", LogoutHandler),
+        (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": "./css/"}),
+        (r"/img/(.*)", tornado.web.StaticFileHandler, {"path": "./img/"}),
+        (r"/javascripts/(.*)", tornado.web.StaticFileHandler, {"path": "./javascripts/"})
     ])
 
 
@@ -445,10 +456,16 @@ async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", type=str, help="path to config file")
     parser.add_argument("--dev", help="run in dev mode (no auth needed)", action="store_true")
+    parser.add_argument("--create_admin", help="create an admin account (with credentials from config)", action="store_true")
     args = parser.parse_args()
 
     ssl_ctx = None
 
+    # set up modules directory if not already present
+    if not os.path.isdir(CONSTANTS.MODULE_DIRECTORY):
+        os.mkdir(CONSTANTS.MODULE_DIRECTORY)
+
+    # deal with config properties
     if args.config:
         with open(args.config) as json_file:
             config = json.load(json_file)
@@ -466,7 +483,8 @@ async def main():
         print('config not supplied or an error occured when reading the file')
         sys.exit(-1)
 
-    await initialize_db()
+    # init database
+    await initialize_db(args.create_admin)
 
     app = make_app(args.dev)
     server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)

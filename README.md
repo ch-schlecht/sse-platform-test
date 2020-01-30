@@ -48,8 +48,16 @@ The config also needs to specify the connection details for your database. Pleas
 To run the platform, execute the following command:
 
 ```sh
-$ python3 main.py -c path/to/config.json
+$ python3 main.py -c path/to/config.json [--dev] [--create_admin]
 ```
+
+Mandatory arguments:
+- -c : the path to the json config file
+
+Optional arguments:
+- --dev : developer mode, no authentication is required to access the api endpoints
+- --create_admin : automatically create an admin account on the platform. Credentials will be read from the config. See the example config for the required keys
+
 
 ## Documentation
 
@@ -57,11 +65,12 @@ The documentation is built with [Sphinx](http://www.sphinx-doc.org/en/master/) a
 
 #### Building the Docs yourself
 
-If you require to build the docs yourself, you need the install Sphinx. Please refer to their [Installation guide](http://www.sphinx-doc.org/en/master/usage/installation.html) for instructions.
-Secondly, you need to install the HTTP templates for Sphinx:
+If you require to build the docs yourself, you need to install Sphinx. Please refer to their [Installation guide](http://www.sphinx-doc.org/en/master/usage/installation.html) for instructions.
+Secondly, you need to install the HTTP templates for Sphinx as well as JSDoc to ensure building the documentation of the frontend:
 
 ```sh
 $ pip install sphinxcontrib-httpdomain
+$ npm install -g jsdoc
 ```
 
 To now build the docs, navigate into the docs/ directory and execute:
